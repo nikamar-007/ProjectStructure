@@ -86,14 +86,50 @@ public class WorkView {
 					setStyle("");
 				} else {
 					if (getIndex() % 2 == 0) {
-						setStyle("-fx-background-color: rgba(255,193,204,0.05); -fx-text-fill: #3c2f5f;");
+						setStyle("-fx-background-color: rgba(255,193,204,0.05); -fx-text-fill: #333333;");
 					} else {
-						setStyle("-fx-background-color: rgba(183,228,247,0.05); -fx-text-fill: #3c2f5f;");
+						setStyle("-fx-background-color: rgba(183,228,247,0.05); -fx-text-fill: #333333;");
 					}
-					setOnMouseEntered(e -> setStyle("-fx-background-color: rgba(255,193,204,0.2); -fx-text-fill: #ffffff;"));
-					setOnMouseExited(e -> setStyle(getIndex() % 2 == 0 ?
-							                               "-fx-background-color: rgba(255,193,204,0.05); -fx-text-fill: #3c2f5f;" :
-							                               "-fx-background-color: rgba(183,228,247,0.05); -fx-text-fill: #3c2f5f;"));
+					updateSelected(isSelected());
+					setOnMouseEntered(e -> {
+						setStyle("");
+						getChildren().forEach(node -> {
+							if (node instanceof TableCell) {
+								((TableCell<?, ?>) node).setStyle("-fx-background-color: rgba(255,193,204,0.2); -fx-text-fill: #000000;");
+							}
+						});
+					});
+					setOnMouseExited(e -> {
+						getChildren().forEach(node -> {
+							if (node instanceof TableCell) {
+								((TableCell<?, ?>) node).setStyle("");
+							}
+						});
+						if (isSelected()) {
+							updateSelected(true);
+						} else {
+							setStyle(getIndex() % 2 == 0 ? "-fx-background-color: rgba(255,193,204,0.05); -fx-text-fill: #333333;" : "-fx-background-color: rgba(183,228,247,0.05); -fx-text-fill: #333333;");
+						}
+					});
+				}
+			}
+			
+			@Override
+			public void updateSelected(boolean selected) {
+				super.updateSelected(selected);
+				if (selected) {
+					getChildren().forEach(node -> {
+						if (node instanceof TableCell) {
+							((TableCell<?, ?>) node).setStyle("-fx-background-color: #fcb6f1; -fx-text-fill: #000000;");
+						}
+					});
+				} else {
+					getChildren().forEach(node -> {
+						if (node instanceof TableCell) {
+							((TableCell<?, ?>) node).setStyle("");
+						}
+					});
+					setStyle(getIndex() % 2 == 0 ? "-fx-background-color: rgba(255,193,204,0.05); -fx-text-fill: #333333;" : "-fx-background-color: rgba(183,228,247,0.05); -fx-text-fill: #333333;");
 				}
 			}
 		});
@@ -208,14 +244,50 @@ public class WorkView {
 					setStyle("");
 				} else {
 					if (getIndex() % 2 == 0) {
-						setStyle("-fx-background-color: rgba(255,193,204,0.05); -fx-text-fill: #3c2f5f;");
+						setStyle("-fx-background-color: rgba(255,193,204,0.05); -fx-text-fill: #333333;");
 					} else {
-						setStyle("-fx-background-color: rgba(183,228,247,0.05); -fx-text-fill: #3c2f5f;");
+						setStyle("-fx-background-color: rgba(183,228,247,0.05); -fx-text-fill: #333333;");
 					}
-					setOnMouseEntered(e -> setStyle("-fx-background-color: rgba(255,193,204,0.2); -fx-text-fill: #ffffff;"));
-					setOnMouseExited(e -> setStyle(getIndex() % 2 == 0 ?
-							                               "-fx-background-color: rgba(255,193,204,0.05); -fx-text-fill: #3c2f5f;" :
-							                               "-fx-background-color: rgba(183,228,247,0.05); -fx-text-fill: #3c2f5f;"));
+					updateSelected(isSelected());
+					setOnMouseEntered(e -> {
+						setStyle("");
+						getChildren().forEach(node -> {
+							if (node instanceof TableCell) {
+								((TableCell<?, ?>) node).setStyle("-fx-background-color: rgba(255,193,204,0.2); -fx-text-fill: #000000;");
+							}
+						});
+					});
+					setOnMouseExited(e -> {
+						getChildren().forEach(node -> {
+							if (node instanceof TableCell) {
+								((TableCell<?, ?>) node).setStyle("");
+							}
+						});
+						if (isSelected()) {
+							updateSelected(true);
+						} else {
+							setStyle(getIndex() % 2 == 0 ? "-fx-background-color: rgba(255,193,204,0.05); -fx-text-fill: #333333;" : "-fx-background-color: rgba(183,228,247,0.05); -fx-text-fill: #333333;");
+						}
+					});
+				}
+			}
+			
+			@Override
+			public void updateSelected(boolean selected) {
+				super.updateSelected(selected);
+				if (selected) {
+					getChildren().forEach(node -> {
+						if (node instanceof TableCell) {
+							((TableCell<?, ?>) node).setStyle("-fx-background-color: #fcb6f1; -fx-text-fill: #000000;");
+						}
+					});
+				} else {
+					getChildren().forEach(node -> {
+						if (node instanceof TableCell) {
+							((TableCell<?, ?>) node).setStyle("");
+						}
+					});
+					setStyle(getIndex() % 2 == 0 ? "-fx-background-color: rgba(255,193,204,0.05); -fx-text-fill: #333333;" : "-fx-background-color: rgba(183,228,247,0.05); -fx-text-fill: #333333;");
 				}
 			}
 		});
