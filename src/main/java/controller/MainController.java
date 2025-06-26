@@ -45,7 +45,7 @@ public class MainController {
 	
 	public void logout() {
 		String defaultRole = currentUser != null ? currentUser.getRole() : "Сотрудник";
-		UserController loginController = new UserController(primaryStage, defaultRole);
+		LoginController loginController = new LoginController(primaryStage, defaultRole);
 		loginController.showLoginView();
 	}
 }

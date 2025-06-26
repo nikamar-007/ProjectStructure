@@ -290,7 +290,7 @@ public class EmployeeView {
 				controller.updateEmployee(employee, password.isEmpty() ? null : password, role);
 				
 				messageLabel.setText("Изменения сохранены");
-				messageLabel.setStyle("-fx-text-fill: #f7e8aa;" +
+				messageLabel.setStyle("-fx-text-fill: #19ff19;" +
 						                      "-fx-font-family: 'Segoe UI';" +
 						                      "-fx-font-weight: bold;" +
 						                      "-fx-font-size: 14;" +

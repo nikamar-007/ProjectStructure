@@ -6,7 +6,9 @@ import javafx.application.Platform;
 import javafx.util.Duration;
 import model.Employee;
 import model.EmployeeWork;
+import model.User;
 import model.Work;
+import dao.UserDAO;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
@@ -18,8 +20,9 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
-
 import java.time.LocalDate;
+import java.util.List;
+
 import javafx.scene.control.cell.PropertyValueFactory;
 
 public class EmployeeWorkView {
@@ -230,14 +233,20 @@ public class EmployeeWorkView {
 				                    "-fx-padding: 15;");
 		grid.add(titleLabel, 0, 0, 2, 1);
 		
+		UserDAO userDAO = UserDAO.getInstance();
 		ComboBox<Employee> employeeCombo = new ComboBox<>();
-		employeeCombo.setItems(FXCollections.observableArrayList(controller.getAllEmployees()));
+		List<Employee> nonAdminEmployees = controller.getAllEmployees().stream()
+				                                   .filter(employee -> {
+					                                   User user = userDAO.getUserByEmail(employee.getEmail());
+					                                   return user == null || !"Администратор".equalsIgnoreCase(user.getRole());
+				                                   })
+				                                   .toList();
+		employeeCombo.setItems(FXCollections.observableArrayList(nonAdminEmployees));
 		employeeCombo.setPromptText("Выберите сотрудника");
 		styleComboBox(employeeCombo);
 		grid.add(new Label("Сотрудник:") {{
 			setFont(Font.font("Segoe UI", FontWeight.LIGHT, 15));
-			setStyle("-fx-text-fill: #3c2f5f;" +
-					         "-fx-padding: 8;");
+			setStyle("-fx-text-fill: #3c2f5f; -fx-padding: 8;");
 		}}, 0, 1);
 		grid.add(employeeCombo, 1, 1);
 		
@@ -247,8 +256,7 @@ public class EmployeeWorkView {
 		styleComboBox(workCombo);
 		grid.add(new Label("Задача:") {{
 			setFont(Font.font("Segoe UI", FontWeight.LIGHT, 15));
-			setStyle("-fx-text-fill: #3c2f5f;" +
-					         "-fx-padding: 8;");
+			setStyle("-fx-text-fill: #3c2f5f; -fx-padding: 8;");
 		}}, 0, 2);
 		grid.add(workCombo, 1, 2);
 		
@@ -258,8 +266,7 @@ public class EmployeeWorkView {
 		styleComboBox(urgencyCombo);
 		grid.add(new Label("Срочность:") {{
 			setFont(Font.font("Segoe UI", FontWeight.LIGHT, 15));
-			setStyle("-fx-text-fill: #3c2f5f;" +
-					         "-fx-padding: 8;");
+			setStyle("-fx-text-fill: #3c2f5f; -fx-padding: 8;");
 		}}, 0, 3);
 		grid.add(urgencyCombo, 1, 3);
 		
@@ -268,8 +275,7 @@ public class EmployeeWorkView {
 		styleTextField(startDateField);
 		grid.add(new Label("Дата начала:") {{
 			setFont(Font.font("Segoe UI", FontWeight.LIGHT, 15));
-			setStyle("-fx-text-fill: #3c2f5f;" +
-					         "-fx-padding: 8;");
+			setStyle("-fx-text-fill: #3c2f5f; -fx-padding: 8;");
 		}}, 0, 4);
 		grid.add(startDateField, 1, 4);
 		
@@ -278,8 +284,7 @@ public class EmployeeWorkView {
 		styleTextField(additionalPaymentField);
 		grid.add(new Label("Доп. оплата:") {{
 			setFont(Font.font("Segoe UI", FontWeight.LIGHT, 15));
-			setStyle("-fx-text-fill: #3c2f5f;" +
-					         "-fx-padding: 8;");
+			setStyle("-fx-text-fill: #3c2f5f; -fx-padding: 8;");
 		}}, 0, 5);
 		grid.add(additionalPaymentField, 1, 5);
 		
@@ -293,8 +298,7 @@ public class EmployeeWorkView {
 		
 		final Label messageLabel = new Label();
 		messageLabel.setFont(Font.font("Segoe UI", FontWeight.BOLD, 14));
-		messageLabel.setStyle("-fx-text-fill: #ff9999;" +
-				                      "-fx-padding: 10;");
+		messageLabel.setStyle("-fx-text-fill: #ff9999; -fx-padding: 10;");
 		grid.add(messageLabel, 1, 7);
 		
 		saveButton.setOnAction(e -> {
@@ -394,8 +398,7 @@ public class EmployeeWorkView {
 		styleComboBox(employeeCombo);
 		grid.add(new Label("Сотрудник:") {{
 			setFont(Font.font("Segoe UI", FontWeight.LIGHT, 15));
-			setStyle("-fx-text-fill: #3c2f5f;" +
-					         "-fx-padding: 8;");
+			setStyle("-fx-text-fill: #3c2f5f; -fx-padding: 8;");
 		}}, 0, 1);
 		grid.add(employeeCombo, 1, 1);
 		
@@ -406,8 +409,7 @@ public class EmployeeWorkView {
 		styleComboBox(workCombo);
 		grid.add(new Label("Задача:") {{
 			setFont(Font.font("Segoe UI", FontWeight.LIGHT, 15));
-			setStyle("-fx-text-fill: #3c2f5f;" +
-					         "-fx-padding: 8;");
+			setStyle("-fx-text-fill: #3c2f5f; -fx-padding: 8;");
 		}}, 0, 2);
 		grid.add(workCombo, 1, 2);
 		
@@ -417,8 +419,7 @@ public class EmployeeWorkView {
 		styleComboBox(urgencyCombo);
 		grid.add(new Label("Срочность:") {{
 			setFont(Font.font("Segoe UI", FontWeight.LIGHT, 15));
-			setStyle("-fx-text-fill: #3c2f5f;" +
-					         "-fx-padding: 8;");
+			setStyle("-fx-text-fill: #3c2f5f; -fx-padding: 8;");
 		}}, 0, 3);
 		grid.add(urgencyCombo, 1, 3);
 		
@@ -427,8 +428,7 @@ public class EmployeeWorkView {
 		styleTextField(startDateField);
 		grid.add(new Label("Дата начала:") {{
 			setFont(Font.font("Segoe UI", FontWeight.LIGHT, 15));
-			setStyle("-fx-text-fill: #3c2f5f;" +
-					         "-fx-padding: 8;");
+			setStyle("-fx-text-fill: #3c2f5f; -fx-padding: 8;");
 		}}, 0, 4);
 		grid.add(startDateField, 1, 4);
 		
@@ -440,8 +440,7 @@ public class EmployeeWorkView {
 		styleTextField(endDateField);
 		grid.add(new Label("Дата окончания:") {{
 			setFont(Font.font("Segoe UI", FontWeight.LIGHT, 15));
-			setStyle("-fx-text-fill: #3c2f5f;" +
-					         "-fx-padding: 8;");
+			setStyle("-fx-text-fill: #3c2f5f; -fx-padding: 8;");
 		}}, 0, 5);
 		grid.add(endDateField, 1, 5);
 		
@@ -449,8 +448,7 @@ public class EmployeeWorkView {
 		styleTextField(additionalPaymentField);
 		grid.add(new Label("Доп. оплата:") {{
 			setFont(Font.font("Segoe UI", FontWeight.LIGHT, 15));
-			setStyle("-fx-text-fill: #3c2f5f;" +
-					         "-fx-padding: 8;");
+			setStyle("-fx-text-fill: #3c2f5f; -fx-padding: 8;");
 		}}, 0, 6);
 		grid.add(additionalPaymentField, 1, 6);
 		
@@ -464,8 +462,7 @@ public class EmployeeWorkView {
 		
 		final Label messageLabel = new Label();
 		messageLabel.setFont(Font.font("Segoe UI", FontWeight.BOLD, 14));
-		messageLabel.setStyle("-fx-text-fill: #ff9999;" +
-				                      "-fx-padding: 10;");
+		messageLabel.setStyle("-fx-text-fill: #ff9999; -fx-padding: 10;");
 		grid.add(messageLabel, 1, 8);
 		
 		saveButton.setOnAction(e -> {
