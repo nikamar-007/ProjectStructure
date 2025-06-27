@@ -3,12 +3,6 @@ package view;
 import controller.EmployeeWorkController;
 import javafx.animation.FadeTransition;
 import javafx.application.Platform;
-import javafx.util.Duration;
-import model.Employee;
-import model.EmployeeWork;
-import model.User;
-import model.Work;
-import dao.UserDAO;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
@@ -20,9 +14,14 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
+import javafx.util.Duration;
+import model.Employee;
+import model.EmployeeWork;
+import model.User;
+import model.Work;
+import dao.UserDAO;
 import java.time.LocalDate;
 import java.util.List;
-
 import javafx.scene.control.cell.PropertyValueFactory;
 
 public class EmployeeWorkView {
@@ -80,7 +79,7 @@ public class EmployeeWorkView {
 		TableColumn<EmployeeWork, String> endDateCol = new TableColumn<>("Дата окончания");
 		endDateCol.setCellValueFactory(new PropertyValueFactory<>("endDate"));
 		
-		TableColumn<EmployeeWork, String> additionalPaymentCol = new TableColumn<>("Доп. оплата");
+		TableColumn<EmployeeWork, String> additionalPaymentCol = new TableColumn<>("Итог. оплата");
 		additionalPaymentCol.setCellValueFactory(new PropertyValueFactory<>("additionalPayment"));
 		
 		employeeWorkTable.getColumns().addAll(employeeCol, workCol, urgencyCol, startDateCol, endDateCol, additionalPaymentCol);
@@ -310,12 +309,56 @@ public class EmployeeWorkView {
 		
 		TextField additionalPaymentField = new TextField();
 		additionalPaymentField.setPromptText("Дополнительная оплата");
+		additionalPaymentField.setEditable(false);
+		additionalPaymentField.setText("0.00");
 		styleTextField(additionalPaymentField);
-		grid.add(new Label("Доп. оплата:") {{
+		grid.add(new Label("Итог. оплата:") {{
 			setFont(Font.font("Segoe UI", FontWeight.LIGHT, 15));
 			setStyle("-fx-text-fill: #3c2f5f; -fx-padding: 8;");
 		}}, 0, 6);
 		grid.add(additionalPaymentField, 1, 6);
+		
+		endDateField.textProperty().addListener((obs, oldValue, newValue) -> {
+			if (employeeCombo.getValue() != null && workCombo.getValue() != null && !newValue.isEmpty()) {
+				try {
+					LocalDate endDate = LocalDate.parse(newValue);
+					double payment = controller.calculateAdditionalPayment(employeeCombo.getValue(), workCombo.getValue(), endDate);
+					additionalPaymentField.setText(String.format("%.2f", payment));
+				} catch (Exception e) {
+					additionalPaymentField.setText("0.00");
+				}
+			} else {
+				additionalPaymentField.setText("0.00");
+			}
+		});
+		
+		employeeCombo.getSelectionModel().selectedItemProperty().addListener((obs, oldValue, newValue) -> {
+			if (newValue != null && workCombo.getValue() != null && !endDateField.getText().isEmpty()) {
+				try {
+					LocalDate endDate = LocalDate.parse(endDateField.getText());
+					double payment = controller.calculateAdditionalPayment(newValue, workCombo.getValue(), endDate);
+					additionalPaymentField.setText(String.format("%.2f", payment));
+				} catch (Exception e) {
+					additionalPaymentField.setText("0.00");
+				}
+			} else {
+				additionalPaymentField.setText("0.00");
+			}
+		});
+		
+		workCombo.getSelectionModel().selectedItemProperty().addListener((obs, oldValue, newValue) -> {
+			if (newValue != null && employeeCombo.getValue() != null && !endDateField.getText().isEmpty()) {
+				try {
+					LocalDate endDate = LocalDate.parse(endDateField.getText());
+					double payment = controller.calculateAdditionalPayment(employeeCombo.getValue(), newValue, endDate);
+					additionalPaymentField.setText(String.format("%.2f", payment));
+				} catch (Exception e) {
+					additionalPaymentField.setText("0.00");
+				}
+			} else {
+				additionalPaymentField.setText("0.00");
+			}
+		});
 		
 		Button saveButton = new Button("Сохранить");
 		Button cancelButton = new Button("Отмена");
@@ -337,16 +380,14 @@ public class EmployeeWorkView {
 				String urgency = urgencyCombo.getValue();
 				String startDateText = startDateField.getText();
 				String endDateText = endDateField.getText();
-				String additionalPaymentText = additionalPaymentField.getText();
 				
-				if (employee == null || work == null || urgency == null ||
-						    startDateText.isEmpty() || additionalPaymentText.isEmpty()) {
+				if (employee == null || work == null || urgency == null || startDateText.isEmpty()) {
 					throw new IllegalArgumentException("Заполните все обязательные поля");
 				}
 				
 				LocalDate startDate = LocalDate.parse(startDateText);
 				LocalDate endDate = endDateText.isEmpty() ? null : LocalDate.parse(endDateText);
-				double additionalPayment = Double.parseDouble(additionalPaymentText);
+				double additionalPayment = controller.calculateAdditionalPayment(employee, work, endDate);
 				
 				EmployeeWork newEmployeeWork = new EmployeeWork(
 						employee.getIdEmployee(),
@@ -481,13 +522,32 @@ public class EmployeeWorkView {
 		}}, 0, 5);
 		grid.add(endDateField, 1, 5);
 		
-		TextField additionalPaymentField = new TextField(String.valueOf(employeeWork.getAdditionalPayment()));
+		TextField additionalPaymentField = new TextField();
+		additionalPaymentField.setText(String.format("%.2f", controller.calculateAdditionalPayment(
+				controller.getEmployeeById(employeeWork.getIdEmployee()),
+				controller.getWorkById(employeeWork.getIdWork()),
+				employeeWork.getEndDate())));
+		additionalPaymentField.setEditable(false);
 		styleTextField(additionalPaymentField);
-		grid.add(new Label("Доп. оплата:") {{
+		grid.add(new Label("Итог. оплата:") {{
 			setFont(Font.font("Segoe UI", FontWeight.LIGHT, 15));
 			setStyle("-fx-text-fill: #3c2f5f; -fx-padding: 8;");
 		}}, 0, 6);
 		grid.add(additionalPaymentField, 1, 6);
+		
+		
+		endDateField.textProperty().addListener((obs, oldValue, newValue) -> {
+			try {
+				LocalDate endDate = newValue.isEmpty() ? null : LocalDate.parse(newValue);
+				double payment = controller.calculateAdditionalPayment(
+						controller.getEmployeeById(employeeWork.getIdEmployee()),
+						controller.getWorkById(employeeWork.getIdWork()),
+						endDate);
+				additionalPaymentField.setText(String.format("%.2f", payment));
+			} catch (Exception e) {
+				additionalPaymentField.setText("0.00");
+			}
+		});
 		
 		Button saveButton = new Button("Сохранить");
 		Button cancelButton = new Button("Отмена");
@@ -506,14 +566,16 @@ public class EmployeeWorkView {
 			try {
 				String urgency = urgencyCombo.getValue();
 				String endDateText = endDateField.getText();
-				String additionalPaymentText = additionalPaymentField.getText();
 				
-				if (urgency == null || additionalPaymentText.isEmpty()) {
+				if (urgency == null) {
 					throw new IllegalArgumentException("Заполните все обязательные поля");
 				}
 				
 				LocalDate endDate = endDateText.isEmpty() ? null : LocalDate.parse(endDateText);
-				double additionalPayment = Double.parseDouble(additionalPaymentText);
+				double additionalPayment = controller.calculateAdditionalPayment(
+						controller.getEmployeeById(employeeWork.getIdEmployee()),
+						controller.getWorkById(employeeWork.getIdWork()),
+						endDate);
 				
 				employeeWork.setUrgency(urgency);
 				employeeWork.setEndDate(endDate);

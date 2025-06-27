@@ -222,7 +222,7 @@ public class WorkView {
 			TableColumn<Work, String> laborIntensityCol = new TableColumn<>("Трудоемкость");
 			laborIntensityCol.setCellValueFactory(cellData -> new SimpleStringProperty(String.valueOf(cellData.getValue().getLaborIntensity())));
 			
-			TableColumn<Work, String> recommendedEmployeesCol = new TableColumn<>("Реком. кол-во сотрудников");
+			TableColumn<Work, String> recommendedEmployeesCol = new TableColumn<>("Кол-во сотрудников");
 			recommendedEmployeesCol.setCellValueFactory(cellData -> new SimpleStringProperty(String.valueOf(cellData.getValue().getRecommendedEmployees())));
 			
 			workTable.getColumns().addAll(laborIntensityCol, recommendedEmployeesCol);
@@ -247,7 +247,7 @@ public class WorkView {
 				return new SimpleStringProperty(assignment != null && assignment.getEndDate() != null ? assignment.getEndDate().toString() : "");
 			});
 			
-			TableColumn<Work, String> additionalPaymentCol = new TableColumn<>("Доп. оплата");
+			TableColumn<Work, String> additionalPaymentCol = new TableColumn<>("Итог. оплата");
 			additionalPaymentCol.setCellValueFactory(cellData -> {
 				List<EmployeeWork> assignments = controller.employeeWorkDAO.getEmployeeWorksByEmployeeId(controller.currentUser.getIdEmployee());
 				EmployeeWork assignment = assignments.stream()
@@ -475,7 +475,7 @@ public class WorkView {
 		grid.add(titleField, 1, 2);
 		
 		TextField laborIntensityField = new TextField();
-		laborIntensityField.setPromptText("Трудоемкость (часы)");
+		laborIntensityField.setPromptText("Трудоемкость (дней)");
 		styleTextField(laborIntensityField);
 		grid.add(new Label("Трудоемкость:") {{
 			setFont(Font.font("Segoe UI", FontWeight.LIGHT, 15));
@@ -495,9 +495,9 @@ public class WorkView {
 		grid.add(fixedPaymentField, 1, 4);
 		
 		TextField recommendedEmployeesField = new TextField();
-		recommendedEmployeesField.setPromptText("Реком. кол-во сотрудников");
+		recommendedEmployeesField.setPromptText("Кол-во сотрудников");
 		styleTextField(recommendedEmployeesField);
-		grid.add(new Label("Реком. кол-во сотрудников:") {{
+		grid.add(new Label("Кол-во сотрудников:") {{
 			setFont(Font.font("Segoe UI", FontWeight.LIGHT, 15));
 			setStyle("-fx-text-fill: #3c2f5f;" +
 					         "-fx-padding: 8;");
@@ -666,7 +666,7 @@ public class WorkView {
 		
 		TextField recommendedEmployeesField = new TextField(String.valueOf(work.getRecommendedEmployees()));
 		styleTextField(recommendedEmployeesField);
-		grid.add(new Label("Реком. кол-во сотрудников:") {{
+		grid.add(new Label("Кол-во сотрудников:") {{
 			setFont(Font.font("Segoe UI", FontWeight.LIGHT, 15));
 			setStyle("-fx-text-fill: #3c2f5f;" +
 					         "-fx-padding: 8;");
@@ -807,6 +807,9 @@ public class WorkView {
 			if (user != null && "Администратор".equalsIgnoreCase(user.getRole()) && !checkBox.isSelected()) {
 				checkBox.setDisable(true);
 			}
+			if (isResponsible) {
+				checkBox.setDisable(true);
+			}
 			
 			styleCheckBox(checkBox);
 			checkBoxes.add(checkBox);
@@ -842,7 +845,8 @@ public class WorkView {
 					if (checkBoxes.get(i).isSelected()) {
 						Employee employee = allEmployees.get(i);
 						User user = userDAO.getUserByEmail(employee.getEmail());
-						if (user != null && "Администратор".equalsIgnoreCase(user.getRole())) {
+						if (user != null && "Администратор".equalsIgnoreCase(user.getRole()) &&
+								    employee.getIdEmployee() != work.getIdResponsible()) {
 							throw new IllegalArgumentException("Нельзя назначить администратора: " + employee.toString());
 						}
 						
@@ -852,7 +856,7 @@ public class WorkView {
 								"Средняя",
 								LocalDate.now(),
 								null,
-								0
+								0.0
 						);
 						controller.assignWork(assignment);
 					}

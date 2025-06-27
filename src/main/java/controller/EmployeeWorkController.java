@@ -9,6 +9,7 @@ import model.User;
 import model.Work;
 import view.EmployeeWorkView;
 import javafx.stage.Stage;
+import java.time.LocalDate;
 import java.util.List;
 
 public class EmployeeWorkController {
@@ -39,6 +40,16 @@ public class EmployeeWorkController {
 	public void addEmployeeWork(EmployeeWork employeeWork) {employeeWorkDAO.addEmployeeWork(employeeWork);}
 	public void updateEmployeeWork(EmployeeWork employeeWork) {employeeWorkDAO.updateEmployeeWork(employeeWork);}
 	public void deleteEmployeeWork(EmployeeWork employeeWork) {employeeWorkDAO.deleteEmployeeWork(employeeWork.getIdEmployee(), employeeWork.getIdWork(), employeeWork.getStartDate());}
+	
+	public double calculateAdditionalPayment(Employee employee, Work work, LocalDate endDate) {
+		if (endDate == null) {
+			return 0.0;
+		}
+		double fixedPayment = work.getFixedPayment() != null ? work.getFixedPayment() : 0;
+		double salary = employee.getSalary();
+		int experience = employee.getExperience();
+		return fixedPayment * (1 + experience / 10.0) + (salary * 0.01);
+	}
 	
 	public void backToMainView() {
 		MainController mainController = new MainController(primaryStage, currentUser);

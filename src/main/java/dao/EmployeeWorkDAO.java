@@ -83,8 +83,8 @@ public class EmployeeWorkDAO {
 		List<EmployeeWork> employeeWorks = new ArrayList<>();
 		String sql = "SELECT * FROM employee_works";
 		try (Connection c = DBConnection.getInstance().getConnection();
-		     Statement s = c.createStatement();
-		     ResultSet r = s.executeQuery(sql)) {
+		     PreparedStatement p = c.prepareStatement(sql);
+		     ResultSet r = p.executeQuery(sql)) {
 			while (r.next()) {
 				EmployeeWork employeeWork = new EmployeeWork(
 						r.getInt("id_employee"),
