@@ -112,4 +112,29 @@ public class EmployeeDAO {
 			throw new RuntimeException("Ошибка обновления сотрудника: " + e.getMessage());
 		}
 	}
+	
+	public void deleteEmployee(int idEmployee) {
+		Connection c =  DBConnection.getInstance().getConnection();
+		try {
+			String deleteEmployeeWorksSql = "DELETE FROM employee_works WHERE id_employee = ?";
+			try (PreparedStatement p = c.prepareStatement(deleteEmployeeWorksSql)) {
+				p.setInt(1, idEmployee);
+				p.executeUpdate();
+			}
+			
+			String deleteUserSql = "DELETE FROM users WHERE id_employee = ?";
+			try (PreparedStatement p = c.prepareStatement(deleteUserSql)) {
+				p.setInt(1, idEmployee);
+				p.executeUpdate();
+			}
+			
+			String deleteEmployeeSql = "DELETE FROM employees WHERE id_employee = ?";
+			try (PreparedStatement p = c.prepareStatement(deleteEmployeeSql)) {
+				p.setInt(1, idEmployee);
+				p.executeUpdate();
+			}
+		} catch (SQLException e) {
+			throw new RuntimeException("Ошибка удаления сотрудника: " + e.getMessage());
+		}
+	}
 }

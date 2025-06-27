@@ -172,14 +172,34 @@ public class EmployeeWorkView {
 				EmployeeWork selected = employeeWorkTable.getSelectionModel().getSelectedItem();
 				if (selected != null) {
 					showEditEmployeeWorkForm(primaryStage, selected);
+				} else {
+					showAlert("Ошибка", "Выберите назначение для редактирования");
 				}
 			});
 			deleteButton.setOnAction(e -> {
 				EmployeeWork selected = employeeWorkTable.getSelectionModel().getSelectedItem();
 				if (selected != null) {
-					controller.deleteEmployeeWork(selected);
-					employeeWorkTable.setItems(FXCollections.observableArrayList(
-							controller.isAdmin() ? controller.getAllEmployeeWorks() : controller.getUserEmployeeWorks()));
+					Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
+					confirmAlert.setTitle("Подтверждение удаления");
+					confirmAlert.setHeaderText(null);
+					confirmAlert.setContentText("Вы уверены, что хотите удалить это назначение?");
+					ButtonType yesButton = new ButtonType("Да");
+					ButtonType noButton = new ButtonType("Нет");
+					confirmAlert.getButtonTypes().setAll(yesButton, noButton);
+					confirmAlert.showAndWait().ifPresent(response -> {
+						if (response == yesButton) {
+							try {
+								controller.deleteEmployeeWork(selected);
+								employeeWorkTable.setItems(FXCollections.observableArrayList(
+										controller.isAdmin() ? controller.getAllEmployeeWorks() : controller.getUserEmployeeWorks()));
+								showAlert("Успех", "Назначение успешно удалено");
+							} catch (Exception ex) {
+								showAlert("Ошибка", "Ошибка удаления: " + ex.getMessage());
+							}
+						}
+					});
+				} else {
+					showAlert("Ошибка", "Выберите назначение для удаления");
 				}
 			});
 			
@@ -188,7 +208,7 @@ public class EmployeeWorkView {
 		
 		vbox.getChildren().addAll(backButton, titleLabel, employeeWorkTable, buttonBox);
 		
-		Scene scene = new Scene(vbox, 800, 600);
+		Scene scene = new Scene(vbox, 1000, 600);
 		scene.setFill(Color.web("#f5f0f6"));
 		
 		FadeTransition fade = new FadeTransition(Duration.millis(500), vbox);
@@ -279,14 +299,23 @@ public class EmployeeWorkView {
 		}}, 0, 4);
 		grid.add(startDateField, 1, 4);
 		
+		TextField endDateField = new TextField();
+		endDateField.setPromptText("Дата конца (ГГГГ-ММ-ДД)");
+		styleTextField(endDateField);
+		grid.add(new Label("Дата конца:") {{
+			setFont(Font.font("Segoe UI", FontWeight.LIGHT, 15));
+			setStyle("-fx-text-fill: #3c2f5f; -fx-padding: 8;");
+		}}, 0, 5);
+		grid.add(endDateField, 1, 5);
+		
 		TextField additionalPaymentField = new TextField();
 		additionalPaymentField.setPromptText("Дополнительная оплата");
 		styleTextField(additionalPaymentField);
 		grid.add(new Label("Доп. оплата:") {{
 			setFont(Font.font("Segoe UI", FontWeight.LIGHT, 15));
 			setStyle("-fx-text-fill: #3c2f5f; -fx-padding: 8;");
-		}}, 0, 5);
-		grid.add(additionalPaymentField, 1, 5);
+		}}, 0, 6);
+		grid.add(additionalPaymentField, 1, 6);
 		
 		Button saveButton = new Button("Сохранить");
 		Button cancelButton = new Button("Отмена");
@@ -294,12 +323,12 @@ public class EmployeeWorkView {
 		styleButton(cancelButton);
 		HBox buttonBox = new HBox(10, saveButton, cancelButton);
 		buttonBox.setAlignment(Pos.CENTER);
-		grid.add(buttonBox, 1, 6);
+		grid.add(buttonBox, 1, 7);
 		
 		final Label messageLabel = new Label();
 		messageLabel.setFont(Font.font("Segoe UI", FontWeight.BOLD, 14));
 		messageLabel.setStyle("-fx-text-fill: #ff9999; -fx-padding: 10;");
-		grid.add(messageLabel, 1, 7);
+		grid.add(messageLabel, 1, 8);
 		
 		saveButton.setOnAction(e -> {
 			try {
@@ -307,6 +336,7 @@ public class EmployeeWorkView {
 				Work work = workCombo.getValue();
 				String urgency = urgencyCombo.getValue();
 				String startDateText = startDateField.getText();
+				String endDateText = endDateField.getText();
 				String additionalPaymentText = additionalPaymentField.getText();
 				
 				if (employee == null || work == null || urgency == null ||
@@ -315,6 +345,7 @@ public class EmployeeWorkView {
 				}
 				
 				LocalDate startDate = LocalDate.parse(startDateText);
+				LocalDate endDate = endDateText.isEmpty() ? null : LocalDate.parse(endDateText);
 				double additionalPayment = Double.parseDouble(additionalPaymentText);
 				
 				EmployeeWork newEmployeeWork = new EmployeeWork(
@@ -322,10 +353,16 @@ public class EmployeeWorkView {
 						work.getIdWork(),
 						urgency,
 						startDate,
-						null,
+						endDate,
 						additionalPayment
 				);
 				controller.addEmployeeWork(newEmployeeWork);
+				employeeCombo.setValue(null);
+				workCombo.setValue(null);
+				urgencyCombo.setValue(null);
+				startDateField.clear();
+				endDateField.clear();
+				additionalPaymentField.clear();
 				showEmployeeWorkManagementView(primaryStage);
 			} catch (Exception ex) {
 				messageLabel.setText("Ошибка: " + ex.getMessage());
@@ -346,7 +383,7 @@ public class EmployeeWorkView {
 				                  "-fx-background-radius: 20;" +
 				                  "-fx-effect: dropshadow(gaussian, rgba(255,193,204,0.4), 10, 0.5, 0, 0);");
 		
-		Scene scene = new Scene(formVBox, 600, 500);
+		Scene scene = new Scene(formVBox, 600, 600);
 		scene.setFill(Color.web("#f5f0f6"));
 		
 		FadeTransition fade = new FadeTransition(Duration.millis(500), formVBox);
@@ -503,7 +540,7 @@ public class EmployeeWorkView {
 				                  "-fx-background-radius: 20;" +
 				                  "-fx-effect: dropshadow(gaussian, rgba(255,193,204,0.4), 10, 0.5, 0, 0);");
 		
-		Scene scene = new Scene(formVBox, 600, 500);
+		Scene scene = new Scene(formVBox, 600, 600);
 		scene.setFill(Color.web("#f5f0f6"));
 		
 		FadeTransition fade = new FadeTransition(Duration.millis(500), formVBox);
@@ -513,6 +550,14 @@ public class EmployeeWorkView {
 		
 		primaryStage.setScene(scene);
 		primaryStage.show();
+	}
+	
+	private void showAlert(String title, String message) {
+		Alert alert = new Alert(Alert.AlertType.WARNING);
+		alert.setTitle(title);
+		alert.setHeaderText(null);
+		alert.setContentText(message);
+		alert.showAndWait();
 	}
 	
 	private void styleButton(Button button) {

@@ -7,7 +7,7 @@ public class User {
 	private String password;
 	private String role;
 	private String lastName;
-	private String firstName;
+	public  String firstName;
 	private String middleName;
 	private String gender;
 	private String position;

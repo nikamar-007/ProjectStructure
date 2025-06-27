@@ -6,7 +6,7 @@ import javafx.stage.Stage;
 
 public class MainController {
 	private final Stage primaryStage;
-	private final User currentUser;
+	public final User currentUser;
 	private final MainView mainView;
 	
 	public MainController(Stage primaryStage, User currentUser) {

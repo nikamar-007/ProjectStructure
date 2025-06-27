@@ -1,5 +1,6 @@
 package view;
 
+import model.User;
 import controller.MainController;
 import javafx.animation.FadeTransition;
 import javafx.geometry.Insets;
@@ -29,7 +30,7 @@ public class MainView {
 				              "-fx-background-radius: 20;" +
 				              "-fx-effect: dropshadow(gaussian, rgba(255,193,204,0.4), 10, 0.5, 0, 0);");
 		
-		Label titleLabel = new Label("Система распределения задач");
+		Label titleLabel = new Label("Добро пожаловать");
 		titleLabel.setFont(Font.font("Verdana", FontWeight.EXTRA_BOLD, 28));
 		titleLabel.setStyle("-fx-text-fill: #3c2f5f;" +
 				                    "-fx-effect: dropshadow(gaussian, rgba(255,255,255,0.7), 5, 0.4, 0, 0);" +
@@ -71,7 +72,7 @@ public class MainView {
 					responsibleButton, logoutButton);
 		}
 		
-		Scene scene = new Scene(vbox, 450, 600);
+		Scene scene = new Scene(vbox, 600, 600);
 		scene.setFill(Color.web("#f5f0f6"));
 		
 		FadeTransition fade = new FadeTransition(Duration.millis(500), vbox);

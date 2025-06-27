@@ -40,15 +40,20 @@ public class WorkView {
 				              "-fx-background-radius: 20;" +
 				              "-fx-effect: dropshadow(gaussian, rgba(255,193,204,0.4), 10, 0.5, 0, 0);");
 		
+		HBox navPanel = new HBox(10);
+		navPanel.setAlignment(Pos.CENTER_LEFT);
+		
+		Button backButton = new Button("Назад");
+		styleButton(backButton);
+		backButton.setOnAction(e -> controller.backToMainView());
+		
 		Label titleLabel = new Label("Ответственные работы");
 		titleLabel.setFont(Font.font("Verdana", FontWeight.EXTRA_BOLD, 28));
 		titleLabel.setStyle("-fx-text-fill: #3c2f5f;" +
 				                    "-fx-effect: dropshadow(gaussian, rgba(255,255,255,0.7), 5, 0.4, 0, 0);" +
 				                    "-fx-padding: 15;");
 		
-		Button backButton = new Button("Назад");
-		styleButton(backButton);
-		backButton.setOnAction(e -> controller.backToMainView());
+		navPanel.getChildren().addAll(backButton, titleLabel);
 		
 		TableView<Work> table = new TableView<>();
 		table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
@@ -139,7 +144,7 @@ public class WorkView {
 		assignButton.setOnAction(e -> {
 			Work selected = table.getSelectionModel().getSelectedItem();
 			if (selected != null) {
-				showAssignEmployeesForm(primaryStage, selected);
+				showAssignEmployeesForm(primaryStage, selected, () -> showResponsibleWorksView(primaryStage));
 			} else {
 				showAlert("Ошибка", "Выберите задачу для назначения сотрудников");
 			}
@@ -148,7 +153,7 @@ public class WorkView {
 		HBox buttonBox = new HBox(10, assignButton);
 		buttonBox.setAlignment(Pos.CENTER);
 		
-		vbox.getChildren().addAll(backButton, titleLabel, table, buttonBox);
+		vbox.getChildren().addAll(navPanel, table, buttonBox);
 		
 		Scene scene = new Scene(vbox, 700, 500);
 		scene.setFill(Color.web("#f5f0f6"));
@@ -327,7 +332,7 @@ public class WorkView {
 			assignButton.setOnAction(e -> {
 				Work selectedWork = workTable.getSelectionModel().getSelectedItem();
 				if (selectedWork != null) {
-					showAssignEmployeesForm(primaryStage, selectedWork);
+					showAssignEmployeesForm(primaryStage, selectedWork, () -> showWorkManagementView(primaryStage));
 				} else {
 					showAlert("Ошибка", "Выберите задачу для назначения сотрудников");
 				}
@@ -690,7 +695,7 @@ public class WorkView {
 		primaryStage.show();
 	}
 	
-	private void showAssignEmployeesForm(Stage primaryStage, Work work) {
+	private void showAssignEmployeesForm(Stage primaryStage, Work work, Runnable returnAction) {
 		GridPane grid = new GridPane();
 		grid.setAlignment(Pos.TOP_CENTER);
 		grid.setHgap(10);
@@ -793,7 +798,7 @@ public class WorkView {
 						controller.assignWork(assignment);
 					}
 				}
-				showWorkManagementView(primaryStage);
+				returnAction.run();
 			} catch (Exception ex) {
 				messageLabel.setText("Ошибка: " + ex.getMessage());
 				messageLabel.setStyle("-fx-text-fill: #ff9999;" +
@@ -804,7 +809,7 @@ public class WorkView {
 			}
 		});
 		
-		cancelButton.setOnAction(e -> showWorkManagementView(primaryStage));
+		cancelButton.setOnAction(e -> returnAction.run());
 		
 		VBox formVBox = new VBox(20, titleLabel, scrollPane);
 		formVBox.setPadding(new Insets(20));

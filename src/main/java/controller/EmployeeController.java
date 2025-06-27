@@ -24,10 +24,21 @@ public class EmployeeController {
 		this.userDAO = UserDAO.getInstance();
 	}
 	
-	public User getCurrentUser() {return currentUser;}
-	public void showProfileView() {employeeView.showProfileView(primaryStage, getEmployeeById(currentUser.getIdEmployee()));}
-	public void showAllEmployeesView() {employeeView.showAllEmployeesView(primaryStage);}
-	public Employee getEmployeeById(int id) {return employeeDAO.getEmployeeById(id);}
+	public User getCurrentUser() {
+		return currentUser;
+	}
+	
+	public void showProfileView() {
+		employeeView.showProfileView(primaryStage, getEmployeeById(currentUser.getIdEmployee()));
+	}
+	
+	public void showAllEmployeesView() {
+		employeeView.showAllEmployeesView(primaryStage);
+	}
+	
+	public Employee getEmployeeById(int id) {
+		return employeeDAO.getEmployeeById(id);
+	}
 	
 	public List<Employee> getAllEmployees() {
 		List<Employee> allEmployees = employeeDAO.getAllEmployees();
@@ -58,5 +69,35 @@ public class EmployeeController {
 			user.setEmail(employee.getEmail());
 			userDAO.updateUser(user);
 		}
+	}
+	
+	public void createEmployee(Employee employee, String password, String role) {
+		int idEmployee = employeeDAO.addEmployee(employee);
+		if (idEmployee > 0) {
+			User user = new User(
+					employee.getEmail(),
+					password,
+					role,
+					employee.getLastName(),
+					employee.getFirstName(),
+					employee.getMiddleName(),
+					employee.getGender(),
+					employee.getPosition(),
+					employee.getSalary(),
+					employee.getExperience()
+			);
+			user.setIdEmployee(idEmployee);
+			userDAO.registerUser(user);
+		} else {
+			throw new RuntimeException("Не удалось создать сотрудника");
+		}
+	}
+	
+	public void deleteEmployee(int idEmployee) {
+		employeeDAO.deleteEmployee(idEmployee);
+	}
+	
+	public boolean isAdmin() {
+		return "Администратор".equalsIgnoreCase(currentUser.getRole());
 	}
 }

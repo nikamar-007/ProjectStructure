@@ -31,7 +31,7 @@ public class LoginView {
 				              "-fx-background-radius: 20;" +
 				              "-fx-effect: dropshadow(gaussian, rgba(255,193,204,0.4), 10, 0.5, 0, 0);");
 		
-		Label titleLabel = new Label("Вход в систему (" + role + ")");
+		Label titleLabel = new Label("Вход в систему");
 		titleLabel.setFont(Font.font("Verdana", FontWeight.EXTRA_BOLD, 28));
 		titleLabel.setStyle("-fx-text-fill: #3c2f5f;" +
 				                    "-fx-effect: dropshadow(gaussian, rgba(255,255,255,0.7), 5, 0.4, 0, 0);" +
