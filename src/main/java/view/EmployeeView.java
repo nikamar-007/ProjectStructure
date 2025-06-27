@@ -19,6 +19,7 @@ import javafx.stage.Stage;
 import javafx.util.Duration;
 import java.util.List;
 import javafx.application.Platform;
+import model.User;
 
 public class EmployeeView {
 	private final EmployeeController controller;
@@ -29,7 +30,8 @@ public class EmployeeView {
 	
 	public void showProfileView(Stage primaryStage, Employee employee) {
 		showEmployeeForm(primaryStage, employee, false, true, () -> {
-			MainController mainController = new MainController(primaryStage, controller.getCurrentUser());
+			User updatedUser = UserDAO.getInstance().getUserByEmail(employee.getEmail());
+			MainController mainController = new MainController(primaryStage, updatedUser != null ? updatedUser : controller.getCurrentUser());
 			mainController.showMainView();
 		});
 	}
@@ -366,6 +368,9 @@ public class EmployeeView {
 		String employeeRole = isNew ? "Сотрудник" : (UserDAO.getInstance().getUserByEmail(employee.getEmail()) != null ? UserDAO.getInstance().getUserByEmail(employee.getEmail()).getRole() : "Сотрудник");
 		roleCombo.setValue(employeeRole);
 		styleComboBox(roleCombo);
+		if (isProfileView && !controller.isAdmin()) {
+			roleCombo.setDisable(true);
+		}
 		grid.add(new Label("Роль:") {{
 			setFont(Font.font("Segoe UI", FontWeight.LIGHT, 15));
 			setStyle("-fx-text-fill: #3c2f5f;" +
@@ -407,7 +412,7 @@ public class EmployeeView {
 				String experienceText = experienceField.getText();
 				String email = emailField.getText();
 				String password = passwordField.getText();
-				String role = roleCombo.getValue();
+				String role = isProfileView && !controller.isAdmin() ? controller.getCurrentUser().getRole() : roleCombo.getValue();
 				
 				if (lastName.isEmpty() || firstName.isEmpty() || email.isEmpty() || (isNew && password.isEmpty()) || role == null) {
 					throw new IllegalArgumentException("Заполните все обязательные поля, включая роль");
@@ -436,6 +441,9 @@ public class EmployeeView {
 							                      "-fx-font-weight: bold;" +
 							                      "-fx-font-size: 14;" +
 							                      "-fx-padding: 10;");
+					User updatedUser = UserDAO.getInstance().getUserByEmail(emp.getEmail());
+					MainController mainController = new MainController(primaryStage, updatedUser != null ? updatedUser : controller.getCurrentUser());
+					mainController.showMainView();
 				} else {
 					if (isNew) {
 						controller.createEmployee(emp, password, role);
