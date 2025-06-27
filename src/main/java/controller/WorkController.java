@@ -15,11 +15,11 @@ import java.util.List;
 
 public class WorkController {
 	private final Stage primaryStage;
-	private final User currentUser;
+	public final User currentUser;
 	private final WorkView workView;
 	private final WorkDAO workDAO;
 	private final EmployeeDAO employeeDAO;
-	private final EmployeeWorkDAO employeeWorkDAO;
+	public final EmployeeWorkDAO employeeWorkDAO;
 	
 	public WorkController(Stage primaryStage, User currentUser) {
 		this.primaryStage = primaryStage;

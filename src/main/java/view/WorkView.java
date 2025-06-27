@@ -226,6 +226,48 @@ public class WorkView {
 			recommendedEmployeesCol.setCellValueFactory(cellData -> new SimpleStringProperty(String.valueOf(cellData.getValue().getRecommendedEmployees())));
 			
 			workTable.getColumns().addAll(laborIntensityCol, recommendedEmployeesCol);
+		} else {
+			TableColumn<Work, String> startDateCol = new TableColumn<>("Дата начала");
+			startDateCol.setCellValueFactory(cellData -> {
+				List<EmployeeWork> assignments = controller.employeeWorkDAO.getEmployeeWorksByEmployeeId(controller.currentUser.getIdEmployee());
+				EmployeeWork assignment = assignments.stream()
+						                          .filter(ew -> ew.getIdWork() == cellData.getValue().getIdWork())
+						                          .findFirst()
+						                          .orElse(null);
+				return new SimpleStringProperty(assignment != null ? assignment.getStartDate().toString() : "");
+			});
+			
+			TableColumn<Work, String> endDateCol = new TableColumn<>("Дата окончания");
+			endDateCol.setCellValueFactory(cellData -> {
+				List<EmployeeWork> assignments = controller.employeeWorkDAO.getEmployeeWorksByEmployeeId(controller.currentUser.getIdEmployee());
+				EmployeeWork assignment = assignments.stream()
+						                          .filter(ew -> ew.getIdWork() == cellData.getValue().getIdWork())
+						                          .findFirst()
+						                          .orElse(null);
+				return new SimpleStringProperty(assignment != null && assignment.getEndDate() != null ? assignment.getEndDate().toString() : "");
+			});
+			
+			TableColumn<Work, String> additionalPaymentCol = new TableColumn<>("Доп. оплата");
+			additionalPaymentCol.setCellValueFactory(cellData -> {
+				List<EmployeeWork> assignments = controller.employeeWorkDAO.getEmployeeWorksByEmployeeId(controller.currentUser.getIdEmployee());
+				EmployeeWork assignment = assignments.stream()
+						                          .filter(ew -> ew.getIdWork() == cellData.getValue().getIdWork())
+						                          .findFirst()
+						                          .orElse(null);
+				return new SimpleStringProperty(assignment != null ? String.valueOf(assignment.getAdditionalPayment()) : "");
+			});
+			
+			TableColumn<Work, String> urgencyCol = new TableColumn<>("Срочность");
+			urgencyCol.setCellValueFactory(cellData -> {
+				List<EmployeeWork> assignments = controller.employeeWorkDAO.getEmployeeWorksByEmployeeId(controller.currentUser.getIdEmployee());
+				EmployeeWork assignment = assignments.stream()
+						                          .filter(ew -> ew.getIdWork() == cellData.getValue().getIdWork())
+						                          .findFirst()
+						                          .orElse(null);
+				return new SimpleStringProperty(assignment != null ? assignment.getUrgency() : "");
+			});
+			
+			workTable.getColumns().addAll(startDateCol, endDateCol, additionalPaymentCol, urgencyCol);
 		}
 		
 		workTable.setItems(FXCollections.observableArrayList(
@@ -248,10 +290,15 @@ public class WorkView {
 				if (empty || item == null) {
 					setStyle("");
 				} else {
-					if (getIndex() % 2 == 0) {
-						setStyle("-fx-background-color: rgba(255,193,204,0.05); -fx-text-fill: #333333;");
+					boolean isResponsible = controller.currentUser.getIdEmployee() == item.getIdResponsible();
+					if (isResponsible) {
+						setStyle("-fx-background-color: rgba(144,238,144,0.3); -fx-text-fill: #333333;");
 					} else {
-						setStyle("-fx-background-color: rgba(183,228,247,0.05); -fx-text-fill: #333333;");
+						if (getIndex() % 2 == 0) {
+							setStyle("-fx-background-color: rgba(255,193,204,0.05); -fx-text-fill: #333333;");
+						} else {
+							setStyle("-fx-background-color: rgba(183,228,247,0.05); -fx-text-fill: #333333;");
+						}
 					}
 					updateSelected(isSelected());
 					setOnMouseEntered(e -> {
@@ -271,7 +318,11 @@ public class WorkView {
 						if (isSelected()) {
 							updateSelected(true);
 						} else {
-							setStyle(getIndex() % 2 == 0 ? "-fx-background-color: rgba(255,193,204,0.05); -fx-text-fill: #333333;" : "-fx-background-color: rgba(183,228,247,0.05); -fx-text-fill: #333333;");
+							if (isResponsible) {
+								setStyle("-fx-background-color: rgba(144,238,144,0.3); -fx-text-fill: #333333;");
+							} else {
+								setStyle(getIndex() % 2 == 0 ? "-fx-background-color: rgba(255,193,204,0.05); -fx-text-fill: #333333;" : "-fx-background-color: rgba(183,228,247,0.05); -fx-text-fill: #333333;");
+							}
 						}
 					});
 				}
@@ -292,7 +343,15 @@ public class WorkView {
 							((TableCell<?, ?>) node).setStyle("");
 						}
 					});
-					setStyle(getIndex() % 2 == 0 ? "-fx-background-color: rgba(255,193,204,0.05); -fx-text-fill: #333333;" : "-fx-background-color: rgba(183,228,247,0.05); -fx-text-fill: #333333;");
+					Work item = getItem();
+					if (item != null) {
+						boolean isResponsible = controller.currentUser.getIdEmployee() == item.getIdResponsible();
+						if (isResponsible) {
+							setStyle("-fx-background-color: rgba(144,238,144,0.3); -fx-text-fill: #333333;");
+						} else {
+							setStyle(getIndex() % 2 == 0 ? "-fx-background-color: rgba(255,193,204,0.05); -fx-text-fill: #333333;" : "-fx-background-color: rgba(183,228,247,0.05); -fx-text-fill: #333333;");
+						}
+					}
 				}
 			}
 		});
