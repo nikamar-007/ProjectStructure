@@ -3,6 +3,7 @@ package view;
 import controller.EmployeeController;
 import controller.MainController;
 import model.Employee;
+import dao.UserDAO;
 import javafx.animation.FadeTransition;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
@@ -305,7 +306,7 @@ public class EmployeeView {
 		
 		ComboBox<String> genderCombo = new ComboBox<>();
 		genderCombo.getItems().addAll("Мужской", "Женский");
-		genderCombo.setValue(isNew ? "Выберите пол" : employee.getGender());
+		genderCombo.setValue(isNew ? "Мужской" : employee.getGender());
 		styleComboBox(genderCombo);
 		grid.add(new Label("Пол:") {{
 			setFont(Font.font("Segoe UI", FontWeight.LIGHT, 15));
@@ -362,7 +363,8 @@ public class EmployeeView {
 		
 		ComboBox<String> roleCombo = new ComboBox<>();
 		roleCombo.getItems().addAll("Администратор", "Сотрудник");
-		roleCombo.setValue(isNew ? "Выберите роль" : controller.getCurrentUser().getRole());
+		String employeeRole = isNew ? "Сотрудник" : (UserDAO.getInstance().getUserByEmail(employee.getEmail()) != null ? UserDAO.getInstance().getUserByEmail(employee.getEmail()).getRole() : "Сотрудник");
+		roleCombo.setValue(employeeRole);
 		styleComboBox(roleCombo);
 		grid.add(new Label("Роль:") {{
 			setFont(Font.font("Segoe UI", FontWeight.LIGHT, 15));
@@ -407,8 +409,8 @@ public class EmployeeView {
 				String password = passwordField.getText();
 				String role = roleCombo.getValue();
 				
-				if (lastName.isEmpty() || firstName.isEmpty() || email.isEmpty() || (isNew && password.isEmpty())) {
-					throw new IllegalArgumentException("Заполните все обязательные поля");
+				if (lastName.isEmpty() || firstName.isEmpty() || email.isEmpty() || (isNew && password.isEmpty()) || role == null) {
+					throw new IllegalArgumentException("Заполните все обязательные поля, включая роль");
 				}
 				
 				double salary = Double.parseDouble(salaryText);
@@ -493,7 +495,7 @@ public class EmployeeView {
 	
 	private void styleButton(Button button) {
 		button.setFont(Font.font("Roboto", FontWeight.BOLD, 16));
-		button.setStyle("-fx-background-color: #c9a9a6;" +
+		button.setStyle("-fx-background-color: linear-gradient(to right, #c9a9a6, #d7b7b4);" +
 				                "-fx-text-fill: #f5f5f5;" +
 				                "-fx-background-radius: 20;" +
 				                "-fx-padding: 12 25 12 25;" +
@@ -501,7 +503,7 @@ public class EmployeeView {
 				                "-fx-border-color: #c9a9a6;" +
 				                "-fx-border-width: 1.5;" +
 				                "-fx-border-radius: 20;");
-		button.setOnMouseEntered(e -> button.setStyle("-fx-background-color: #d7b7b4;" +
+		button.setOnMouseEntered(e -> button.setStyle("-fx-background-color: linear-gradient(to right, #d7b7b4, #ffc1cc);" +
 				                                              "-fx-text-fill: #f5f5f5;" +
 				                                              "-fx-background-radius: 20;" +
 				                                              "-fx-padding: 12 25 12 25;" +
@@ -509,7 +511,7 @@ public class EmployeeView {
 				                                              "-fx-border-color: #c9a9a6;" +
 				                                              "-fx-border-width: 1.5;" +
 				                                              "-fx-border-radius: 20;"));
-		button.setOnMouseExited(e -> button.setStyle("-fx-background-color: #c9a9a6;" +
+		button.setOnMouseExited(e -> button.setStyle("-fx-background-color: linear-gradient(to right, #c9a9a6, #d7b7b4);" +
 				                                             "-fx-text-fill: #f5f5f5;" +
 				                                             "-fx-background-radius: 20;" +
 				                                             "-fx-padding: 12 25 12 25;" +

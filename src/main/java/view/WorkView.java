@@ -209,7 +209,7 @@ public class WorkView {
 			return new SimpleStringProperty(emp != null ? emp.toString() : "");
 		});
 		
-		TableColumn<Work, String> fixedPaymentCol = new TableColumn<>("Фиксированная оплата");
+		TableColumn<Work, String> fixedPaymentCol = new TableColumn<>("Оплата");
 		fixedPaymentCol.setCellValueFactory(cellData -> new SimpleStringProperty(
 				cellData.getValue().getFixedPayment() != null ? String.valueOf(cellData.getValue().getFixedPayment()) : ""));
 		
@@ -222,7 +222,7 @@ public class WorkView {
 			TableColumn<Work, String> laborIntensityCol = new TableColumn<>("Трудоемкость");
 			laborIntensityCol.setCellValueFactory(cellData -> new SimpleStringProperty(String.valueOf(cellData.getValue().getLaborIntensity())));
 			
-			TableColumn<Work, String> recommendedEmployeesCol = new TableColumn<>("Рекомендуемое число сотрудников");
+			TableColumn<Work, String> recommendedEmployeesCol = new TableColumn<>("Реком. кол-во сотрудников");
 			recommendedEmployeesCol.setCellValueFactory(cellData -> new SimpleStringProperty(String.valueOf(cellData.getValue().getRecommendedEmployees())));
 			
 			workTable.getColumns().addAll(laborIntensityCol, recommendedEmployeesCol);
@@ -402,7 +402,7 @@ public class WorkView {
 		
 		vbox.getChildren().addAll(navPanel, workTable, buttonBox);
 		
-		Scene scene = new Scene(vbox, 900, 700);
+		Scene scene = new Scene(vbox, 1100, 700);
 		scene.setFill(Color.web("#f5f0f6"));
 		
 		FadeTransition fade = new FadeTransition(Duration.millis(500), vbox);
@@ -485,9 +485,9 @@ public class WorkView {
 		grid.add(laborIntensityField, 1, 3);
 		
 		TextField fixedPaymentField = new TextField();
-		fixedPaymentField.setPromptText("Фиксированная оплата (опционально)");
+		fixedPaymentField.setPromptText("Оплата");
 		styleTextField(fixedPaymentField);
-		grid.add(new Label("Фиксированная оплата:") {{
+		grid.add(new Label("Оплата:") {{
 			setFont(Font.font("Segoe UI", FontWeight.LIGHT, 15));
 			setStyle("-fx-text-fill: #3c2f5f;" +
 					         "-fx-padding: 8;");
@@ -495,9 +495,9 @@ public class WorkView {
 		grid.add(fixedPaymentField, 1, 4);
 		
 		TextField recommendedEmployeesField = new TextField();
-		recommendedEmployeesField.setPromptText("Рекомендуемое число сотрудников");
+		recommendedEmployeesField.setPromptText("Реком. кол-во сотрудников");
 		styleTextField(recommendedEmployeesField);
-		grid.add(new Label("Рекомендуемое число сотрудников:") {{
+		grid.add(new Label("Реком. кол-во сотрудников:") {{
 			setFont(Font.font("Segoe UI", FontWeight.LIGHT, 15));
 			setStyle("-fx-text-fill: #3c2f5f;" +
 					         "-fx-padding: 8;");
@@ -655,9 +655,9 @@ public class WorkView {
 		grid.add(laborIntensityField, 1, 3);
 		
 		TextField fixedPaymentField = new TextField(work.getFixedPayment() != null ? String.valueOf(work.getFixedPayment()) : "");
-		fixedPaymentField.setPromptText("Фиксированная оплата (опционально)");
+		fixedPaymentField.setPromptText("Оплата");
 		styleTextField(fixedPaymentField);
-		grid.add(new Label("Фиксированная оплата:") {{
+		grid.add(new Label("Оплата:") {{
 			setFont(Font.font("Segoe UI", FontWeight.LIGHT, 15));
 			setStyle("-fx-text-fill: #3c2f5f;" +
 					         "-fx-padding: 8;");
@@ -666,7 +666,7 @@ public class WorkView {
 		
 		TextField recommendedEmployeesField = new TextField(String.valueOf(work.getRecommendedEmployees()));
 		styleTextField(recommendedEmployeesField);
-		grid.add(new Label("Рекомендуемое число сотрудников:") {{
+		grid.add(new Label("Реком. кол-во сотрудников:") {{
 			setFont(Font.font("Segoe UI", FontWeight.LIGHT, 15));
 			setStyle("-fx-text-fill: #3c2f5f;" +
 					         "-fx-padding: 8;");
