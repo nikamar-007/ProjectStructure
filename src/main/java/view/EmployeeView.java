@@ -308,7 +308,7 @@ public class EmployeeView {
 		
 		ComboBox<String> genderCombo = new ComboBox<>();
 		genderCombo.getItems().addAll("Мужской", "Женский");
-		genderCombo.setValue(isNew ? "Мужской" : employee.getGender());
+		genderCombo.setValue(isNew ? "Выберите пол" : employee.getGender());
 		styleComboBox(genderCombo);
 		grid.add(new Label("Пол:") {{
 			setFont(Font.font("Segoe UI", FontWeight.LIGHT, 15));

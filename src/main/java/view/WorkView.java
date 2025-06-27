@@ -23,6 +23,8 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import javafx.util.Duration;
 
 public class WorkView {
@@ -787,12 +789,35 @@ public class WorkView {
 				                    "-fx-padding: 15;");
 		grid.add(titleLabel, 0, 0, 2, 1);
 		
+		Label limitLabel = new Label("Максимум сотрудников: " + work.getRecommendedEmployees() + " (включая ответственного)");
+		limitLabel.setFont(Font.font("Segoe UI", FontWeight.BOLD, 14));
+		limitLabel.setStyle("-fx-text-fill: #3c2f5f;" +
+				                    "-fx-padding: 8;");
+		grid.add(limitLabel, 0, 1, 2, 1);
+		
+		Label selectedCountLabel = new Label();
+		selectedCountLabel.setFont(Font.font("Segoe UI", FontWeight.NORMAL, 14));
+		selectedCountLabel.setStyle("-fx-text-fill: #3c2f5f;" +
+				                            "-fx-padding: 8;");
+		grid.add(selectedCountLabel, 0, 2, 2, 1);
+		
 		VBox employeesBox = new VBox(5);
 		List<Employee> allEmployees = controller.getAllEmployees();
 		List<CheckBox> checkBoxes = new ArrayList<>();
 		List<Employee> assignedEmployees = controller.getAssignedEmployees(work.getIdWork());
 		Employee responsibleEmployee = controller.getEmployeeById(work.getIdResponsible());
 		UserDAO userDAO = UserDAO.getInstance();
+		
+		int maxEmployees = work.getRecommendedEmployees();
+		int assignedCount = assignedEmployees.size();
+		
+		boolean responsibleIsAssigned = responsibleEmployee != null &&
+				                                assignedEmployees.stream().anyMatch(e -> e.getIdEmployee() == responsibleEmployee.getIdEmployee());
+		AtomicInteger totalEmployeeCount = new AtomicInteger(assignedCount + (responsibleEmployee != null && !responsibleIsAssigned ? 1 : 0));
+		selectedCountLabel.setText("Выбрано: " + totalEmployeeCount + "/" + maxEmployees);
+		
+	
+		boolean limitReached = totalEmployeeCount.get() >= maxEmployees;
 		
 		for (Employee employee : allEmployees) {
 			CheckBox checkBox = new CheckBox(employee.toString() +
@@ -804,41 +829,77 @@ public class WorkView {
 			checkBox.setSelected(isAssigned || isResponsible);
 			
 			User user = userDAO.getUserByEmail(employee.getEmail());
-			if (user != null && "Администратор".equalsIgnoreCase(user.getRole()) && !checkBox.isSelected()) {
+			if (user != null && "Администратор".equalsIgnoreCase(user.getRole()) && !isAssigned && !isResponsible) {
 				checkBox.setDisable(true);
 			}
 			if (isResponsible) {
+				checkBox.setDisable(true);
+			}
+			if (limitReached && !checkBox.isSelected()) {
 				checkBox.setDisable(true);
 			}
 			
 			styleCheckBox(checkBox);
 			checkBoxes.add(checkBox);
 			employeesBox.getChildren().add(checkBox);
+			
+			checkBox.selectedProperty().addListener((obs, wasSelected, isSelected) -> {
+				if (isSelected && !wasSelected) {
+					totalEmployeeCount.getAndIncrement();
+				} else if (!isSelected && wasSelected && !isResponsible) {
+					totalEmployeeCount.getAndDecrement();
+				}
+				selectedCountLabel.setText("Выбрано: " + totalEmployeeCount + "/" + maxEmployees);
+				
+				if (totalEmployeeCount.get() >= maxEmployees) {
+					for (CheckBox cb : checkBoxes) {
+						if (!cb.isSelected() && !cb.isDisabled()) {
+							cb.setDisable(true);
+						}
+					}
+				} else {
+					for (CheckBox cb : checkBoxes) {
+						Employee emp = allEmployees.get(checkBoxes.indexOf(cb));
+						User empUser = userDAO.getUserByEmail(emp.getEmail());
+						if (!cb.isSelected() &&
+								    !(empUser != null && "Администратор".equalsIgnoreCase(empUser.getRole())) &&
+								    emp.getIdEmployee() != work.getIdResponsible()) {
+							cb.setDisable(false);
+						}
+					}
+				}
+			});
 		}
 		
 		grid.add(new Label("Выберите сотрудников:") {{
 			setFont(Font.font("Segoe UI", FontWeight.LIGHT, 15));
 			setStyle("-fx-text-fill: #3c2f5f;" +
 					         "-fx-padding: 8;");
-		}}, 0, 1);
-		grid.add(employeesBox, 0, 2, 2, 1);
+		}}, 0, 3);
+		grid.add(employeesBox, 0, 4, 2, 1);
 		
 		Button saveButton = new Button("Сохранить");
 		Button cancelButton = new Button("Отмена");
 		styleButton(saveButton);
 		styleButton(cancelButton);
+		saveButton.setDisable(limitReached);
 		HBox buttonBox = new HBox(10, saveButton, cancelButton);
 		buttonBox.setAlignment(Pos.CENTER);
-		grid.add(buttonBox, 0, 3, 2, 1);
+		grid.add(buttonBox, 0, 5, 2, 1);
 		
-		final Label messageLabel = new Label();
+		final Label messageLabel = new Label(limitReached ? "Лимит сотрудников достигнут" : "");
 		messageLabel.setFont(Font.font("Segoe UI", FontWeight.BOLD, 14));
 		messageLabel.setStyle("-fx-text-fill: #ff9999;" +
 				                      "-fx-padding: 10;");
-		grid.add(messageLabel, 0, 4, 2, 1);
+		grid.add(messageLabel, 0, 6, 2, 1);
 		
 		saveButton.setOnAction(e -> {
 			try {
+				long selectedCount = checkBoxes.stream().filter(CheckBox::isSelected).count();
+				if (selectedCount > maxEmployees) {
+					throw new IllegalArgumentException("Превышено максимальное количество сотрудников: " + maxEmployees);
+				}
+				
 				controller.removeAllAssignmentsForWork(work.getIdWork());
 				
 				for (int i = 0; i < checkBoxes.size(); i++) {
@@ -881,7 +942,7 @@ public class WorkView {
 				                  "-fx-background-radius: 20;" +
 				                  "-fx-effect: dropshadow(gaussian, rgba(255,193,204,0.4), 10, 0.5, 0, 0);");
 		
-		Scene scene = new Scene(formVBox, 550, 450);
+		Scene scene = new Scene(formVBox, 550, 700);
 		scene.setFill(Color.web("#f5f0f6"));
 		
 		FadeTransition fade = new FadeTransition(Duration.millis(500), formVBox);

@@ -10,6 +10,7 @@ import model.Work;
 import view.EmployeeWorkView;
 import javafx.stage.Stage;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 public class EmployeeWorkController {
@@ -29,17 +30,17 @@ public class EmployeeWorkController {
 		this.workDAO = WorkDAO.getInstance();
 	}
 	
-	public boolean isAdmin() {return "Администратор".equalsIgnoreCase(currentUser.getRole());}
-	public void showEmployeeWorkManagementView() {employeeWorkView.showEmployeeWorkManagementView(primaryStage);}
-	public List<EmployeeWork> getAllEmployeeWorks() {return employeeWorkDAO.getAllEmployeeWorks();}
-	public List<EmployeeWork> getUserEmployeeWorks() {return employeeWorkDAO.getEmployeeWorksByEmployeeId(currentUser.getIdEmployee());}
-	public List<Employee> getAllEmployees() {return employeeDAO.getAllEmployees();}
-	public List<Work> getAllWorks() {return workDAO.getAllWorks();}
-	public Employee getEmployeeById(int id) {return employeeDAO.getEmployeeById(id);}
-	public Work getWorkById(int id) {return workDAO.getWorkById(id);}
-	public void addEmployeeWork(EmployeeWork employeeWork) {employeeWorkDAO.addEmployeeWork(employeeWork);}
-	public void updateEmployeeWork(EmployeeWork employeeWork) {employeeWorkDAO.updateEmployeeWork(employeeWork);}
-	public void deleteEmployeeWork(EmployeeWork employeeWork) {employeeWorkDAO.deleteEmployeeWork(employeeWork.getIdEmployee(), employeeWork.getIdWork(), employeeWork.getStartDate());}
+	public boolean isAdmin() { return "Администратор".equalsIgnoreCase(currentUser.getRole()); }
+	public void showEmployeeWorkManagementView() { employeeWorkView.showEmployeeWorkManagementView(primaryStage); }
+	public List<EmployeeWork> getAllEmployeeWorks() { return employeeWorkDAO.getAllEmployeeWorks(); }
+	public List<EmployeeWork> getUserEmployeeWorks() { return employeeWorkDAO.getEmployeeWorksByEmployeeId(currentUser.getIdEmployee()); }
+	public List<Employee> getAllEmployees() { return employeeDAO.getAllEmployees(); }
+	public List<Work> getAllWorks() { return workDAO.getAllWorks(); }
+	public Employee getEmployeeById(int id) { return employeeDAO.getEmployeeById(id); }
+	public Work getWorkById(int id) { return workDAO.getWorkById(id); }
+	public void addEmployeeWork(EmployeeWork employeeWork) { employeeWorkDAO.addEmployeeWork(employeeWork); }
+	public void updateEmployeeWork(EmployeeWork employeeWork) { employeeWorkDAO.updateEmployeeWork(employeeWork); }
+	public void deleteEmployeeWork(EmployeeWork employeeWork) { employeeWorkDAO.deleteEmployeeWork(employeeWork.getIdEmployee(), employeeWork.getIdWork(), employeeWork.getStartDate()); }
 	
 	public double calculateAdditionalPayment(Employee employee, Work work, LocalDate endDate) {
 		if (endDate == null) {
@@ -49,6 +50,18 @@ public class EmployeeWorkController {
 		double salary = employee.getSalary();
 		int experience = employee.getExperience();
 		return fixedPayment * (1 + experience / 10.0) + (salary * 0.01);
+	}
+	
+	public List<Employee> getAssignedEmployees(int idWork) {
+		List<Employee> employees = new ArrayList<>();
+		List<EmployeeWork> assignments = employeeWorkDAO.getEmployeeWorksByWorkId(idWork);
+		for (EmployeeWork assignment : assignments) {
+			Employee employee = employeeDAO.getEmployeeById(assignment.getIdEmployee());
+			if (employee != null) {
+				employees.add(employee);
+			}
+		}
+		return employees;
 	}
 	
 	public void backToMainView() {

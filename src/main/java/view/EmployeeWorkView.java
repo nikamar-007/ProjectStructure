@@ -22,6 +22,7 @@ import model.Work;
 import dao.UserDAO;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Collectors;
 import javafx.scene.control.cell.PropertyValueFactory;
 
 public class EmployeeWorkView {
@@ -128,7 +129,8 @@ public class EmployeeWorkView {
 						if (isSelected()) {
 							updateSelected(true);
 						} else {
-							setStyle(getIndex() % 2 == 0 ? "-fx-background-color: rgba(255,193,204,0.05); -fx-text-fill: #333333;" : "-fx-background-color: rgba(183,228,247,0.05); -fx-text-fill: #333333;");
+							setStyle(getIndex() % 2 == 0 ? "-fx-background-color: rgba(255,193,204,0.05); -fx-text-fill: #333333;" :
+									         "-fx-background-color: rgba(183,228,247,0.05); -fx-text-fill: #333333;");
 						}
 					});
 				}
@@ -149,7 +151,8 @@ public class EmployeeWorkView {
 							((TableCell<?, ?>) node).setStyle("");
 						}
 					});
-					setStyle(getIndex() % 2 == 0 ? "-fx-background-color: rgba(255,193,204,0.05); -fx-text-fill: #333333;" : "-fx-background-color: rgba(183,228,247,0.05); -fx-text-fill: #333333;");
+					setStyle(getIndex() % 2 == 0 ? "-fx-background-color: rgba(255,193,204,0.05); -fx-text-fill: #333333;" :
+							         "-fx-background-color: rgba(183,228,247,0.05); -fx-text-fill: #333333;");
 				}
 			}
 		});
@@ -259,7 +262,7 @@ public class EmployeeWorkView {
 					                                   User user = userDAO.getUserByEmail(employee.getEmail());
 					                                   return user == null || !"Администратор".equalsIgnoreCase(user.getRole());
 				                                   })
-				                                   .toList();
+				                                   .collect(Collectors.toList());
 		employeeCombo.setItems(FXCollections.observableArrayList(nonAdminEmployees));
 		employeeCombo.setPromptText("Выберите сотрудника");
 		styleComboBox(employeeCombo);
@@ -270,7 +273,19 @@ public class EmployeeWorkView {
 		grid.add(employeeCombo, 1, 1);
 		
 		ComboBox<Work> workCombo = new ComboBox<>();
-		workCombo.setItems(FXCollections.observableArrayList(controller.getAllWorks()));
+	
+		List<Work> availableWorks = controller.getAllWorks().stream()
+				                            .filter(work -> {
+					                            List<Employee> assignedEmployees = controller.getAssignedEmployees(work.getIdWork());
+					                            Employee responsibleEmployee = controller.getEmployeeById(work.getIdResponsible());
+					                            int assignedCount = assignedEmployees.size();
+					                            boolean responsibleIsAssigned = responsibleEmployee != null &&
+							                                                            assignedEmployees.stream().anyMatch(e -> e.getIdEmployee() == responsibleEmployee.getIdEmployee());
+					                            int totalEmployeeCount = assignedCount + (responsibleEmployee != null && !responsibleIsAssigned ? 1 : 0);
+					                            return totalEmployeeCount < work.getRecommendedEmployees();
+				                            })
+				                            .collect(Collectors.toList());
+		workCombo.setItems(FXCollections.observableArrayList(availableWorks));
 		workCombo.setPromptText("Выберите задачу");
 		styleComboBox(workCombo);
 		grid.add(new Label("Задача:") {{
@@ -278,6 +293,21 @@ public class EmployeeWorkView {
 			setStyle("-fx-text-fill: #3c2f5f; -fx-padding: 8;");
 		}}, 0, 2);
 		grid.add(workCombo, 1, 2);
+		
+		workCombo.getSelectionModel().selectedItemProperty().addListener((obs, oldValue, newValue) -> {
+			if (newValue != null) {
+				List<Employee> assignedEmployees = controller.getAssignedEmployees(newValue.getIdWork());
+				List<Employee> availableEmployees = nonAdminEmployees.stream()
+						                                    .filter(employee -> assignedEmployees.stream()
+								                                                        .noneMatch(assigned -> assigned.getIdEmployee() == employee.getIdEmployee()))
+						                                    .collect(Collectors.toList());
+				employeeCombo.setItems(FXCollections.observableArrayList(availableEmployees));
+				employeeCombo.setValue(null);
+			} else {
+				employeeCombo.setItems(FXCollections.observableArrayList(nonAdminEmployees));
+				employeeCombo.setValue(null);
+			}
+		});
 		
 		ComboBox<String> urgencyCombo = new ComboBox<>();
 		urgencyCombo.getItems().addAll("Низкая", "Средняя", "Высокая", "Критическая");
@@ -379,13 +409,13 @@ public class EmployeeWorkView {
 				Work work = workCombo.getValue();
 				String urgency = urgencyCombo.getValue();
 				String startDateText = startDateField.getText();
-				String endDateText = endDateField.getText();
 				
 				if (employee == null || work == null || urgency == null || startDateText.isEmpty()) {
 					throw new IllegalArgumentException("Заполните все обязательные поля");
 				}
 				
 				LocalDate startDate = LocalDate.parse(startDateText);
+				String endDateText = endDateField.getText();
 				LocalDate endDate = endDateText.isEmpty() ? null : LocalDate.parse(endDateText);
 				double additionalPayment = controller.calculateAdditionalPayment(employee, work, endDate);
 				
@@ -535,7 +565,6 @@ public class EmployeeWorkView {
 		}}, 0, 6);
 		grid.add(additionalPaymentField, 1, 6);
 		
-		
 		endDateField.textProperty().addListener((obs, oldValue, newValue) -> {
 			try {
 				LocalDate endDate = newValue.isEmpty() ? null : LocalDate.parse(newValue);
@@ -661,7 +690,7 @@ public class EmployeeWorkView {
 				                   "-fx-border-radius: 10;" +
 				                   "-fx-padding: 10;" +
 				                   "-fx-text-fill: #3c2f5f;" +
-				                   "-fx-effect: dropshadow(gaussian, rgba(183,228,247,0.2), 6, 0.3, 0, 0);");
+				                   "-fx-effect: dropshadow( gaussian, rgba(183,228,247,0.2), 6, 0.3, 0, 0);");
 	}
 	
 	private void styleComboBox(ComboBox<?> comboBox) {
