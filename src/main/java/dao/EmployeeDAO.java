@@ -114,27 +114,60 @@ public class EmployeeDAO {
 	}
 	
 	public void deleteEmployee(int idEmployee) {
-		Connection c =  DBConnection.getInstance().getConnection();
+		Connection c = DBConnection.getInstance().getConnection();
 		try {
+			c.setAutoCommit(false);
+			String selectWorksSql = "SELECT id_work FROM works WHERE id_responsible = ?";
+			List<Integer> workIds = new ArrayList<>();
+			try (PreparedStatement p = c.prepareStatement(selectWorksSql)) {
+				p.setInt(1, idEmployee);
+				ResultSet rs = p.executeQuery();
+				while (rs.next())
+					workIds.add(rs.getInt("id_work"));
+			}
+			String deleteEmployeeWorksForWorksSql = "DELETE FROM employee_works WHERE id_work = ?";
+			try (PreparedStatement p = c.prepareStatement(deleteEmployeeWorksForWorksSql)) {
+				for (Integer workId : workIds) {
+					p.setInt(1, workId);
+					p.executeUpdate();
+				}
+			}
+			String deleteWorksSql = "DELETE FROM works WHERE id_responsible = ?";
+			try (PreparedStatement p = c.prepareStatement(deleteWorksSql)) {
+				p.setInt(1, idEmployee);
+				p.executeUpdate();
+			}
 			String deleteEmployeeWorksSql = "DELETE FROM employee_works WHERE id_employee = ?";
 			try (PreparedStatement p = c.prepareStatement(deleteEmployeeWorksSql)) {
 				p.setInt(1, idEmployee);
 				p.executeUpdate();
 			}
-			
 			String deleteUserSql = "DELETE FROM users WHERE id_employee = ?";
 			try (PreparedStatement p = c.prepareStatement(deleteUserSql)) {
 				p.setInt(1, idEmployee);
 				p.executeUpdate();
 			}
-			
 			String deleteEmployeeSql = "DELETE FROM employees WHERE id_employee = ?";
 			try (PreparedStatement p = c.prepareStatement(deleteEmployeeSql)) {
 				p.setInt(1, idEmployee);
-				p.executeUpdate();
+				int rowsAffected = p.executeUpdate();
+				if (rowsAffected == 0)
+					throw new SQLException("Сотрудник с id " + idEmployee + " не найден");
 			}
+			c.commit();
 		} catch (SQLException e) {
+			try {
+				c.rollback();
+			} catch (SQLException rollbackEx) {
+				throw new RuntimeException("Ошибка при откате транзакции: " + rollbackEx.getMessage());
+			}
 			throw new RuntimeException("Ошибка удаления сотрудника: " + e.getMessage());
+		} finally {
+			try {
+				c.setAutoCommit(true);
+			} catch (SQLException e) {
+				throw new RuntimeException("Ошибка восстановления автокоммита: " + e.getMessage());
+			}
 		}
 	}
 }

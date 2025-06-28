@@ -221,7 +221,7 @@ public class WorkView {
 		workTable.getColumns().addAll(titleCol, responsibleCol, fixedPaymentCol, descriptionCol);
 		
 		if (controller.isAdmin()) {
-			TableColumn<Work, String> laborIntensityCol = new TableColumn<>("Трудоемкость");
+			TableColumn<Work, String> laborIntensityCol = new TableColumn<>("Трудоемкость (ч)");
 			laborIntensityCol.setCellValueFactory(cellData -> new SimpleStringProperty(String.valueOf(cellData.getValue().getLaborIntensity())));
 			
 			TableColumn<Work, String> recommendedEmployeesCol = new TableColumn<>("Кол-во сотрудников");
@@ -404,7 +404,7 @@ public class WorkView {
 		
 		vbox.getChildren().addAll(navPanel, workTable, buttonBox);
 		
-		Scene scene = new Scene(vbox, 1100, 700);
+		Scene scene = new Scene(vbox, 1200, 700);
 		scene.setFill(Color.web("#f5f0f6"));
 		
 		FadeTransition fade = new FadeTransition(Duration.millis(500), vbox);
@@ -477,7 +477,7 @@ public class WorkView {
 		grid.add(titleField, 1, 2);
 		
 		TextField laborIntensityField = new TextField();
-		laborIntensityField.setPromptText("Трудоемкость (дней)");
+		laborIntensityField.setPromptText("Трудоемкость (часов)");
 		styleTextField(laborIntensityField);
 		grid.add(new Label("Трудоемкость:") {{
 			setFont(Font.font("Segoe UI", FontWeight.LIGHT, 15));
@@ -556,6 +556,15 @@ public class WorkView {
 						description
 				);
 				controller.addWork(newWork);
+				EmployeeWork assignment = new EmployeeWork(
+						responsible.getIdEmployee(),
+						newWork.getIdWork(),
+						"Средняя",
+						LocalDate.now(),
+						null,
+						0.0
+				);
+				controller.assignWork(assignment);
 				showWorkManagementView(primaryStage);
 			} catch (Exception ex) {
 				messageLabel.setText("Ошибка: " + ex.getMessage());
@@ -722,6 +731,17 @@ public class WorkView {
 				work.setRecommendedEmployees(recommendedEmployees);
 				work.setDescription(description);
 				
+				controller.removeAllAssignmentsForWork(work.getIdWork());
+				EmployeeWork responsibleAssignment = new EmployeeWork(
+						responsible.getIdEmployee(),
+						work.getIdWork(),
+						"Средняя",
+						LocalDate.now(),
+						null,
+						0.0
+				);
+				controller.assignWork(responsibleAssignment);
+				
 				controller.updateWork(work);
 				showWorkManagementView(primaryStage);
 			} catch (Exception ex) {
@@ -816,7 +836,6 @@ public class WorkView {
 		AtomicInteger totalEmployeeCount = new AtomicInteger(assignedCount + (responsibleEmployee != null && !responsibleIsAssigned ? 1 : 0));
 		selectedCountLabel.setText("Выбрано: " + totalEmployeeCount + "/" + maxEmployees);
 		
-	
 		boolean limitReached = totalEmployeeCount.get() >= maxEmployees;
 		
 		for (Employee employee : allEmployees) {
@@ -942,7 +961,7 @@ public class WorkView {
 				                  "-fx-background-radius: 20;" +
 				                  "-fx-effect: dropshadow(gaussian, rgba(255,193,204,0.4), 10, 0.5, 0, 0);");
 		
-		Scene scene = new Scene(formVBox, 550, 700);
+		Scene scene = new Scene(formVBox, 900, 700);
 		scene.setFill(Color.web("#f5f0f6"));
 		
 		FadeTransition fade = new FadeTransition(Duration.millis(500), formVBox);

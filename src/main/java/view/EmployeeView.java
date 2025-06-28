@@ -205,28 +205,30 @@ public class EmployeeView {
 			});
 			deleteButton.setOnAction(e -> {
 				Employee selected = table.getSelectionModel().getSelectedItem();
-				if (selected != null) {
-					Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
-					confirmAlert.setTitle("Подтверждение удаления");
-					confirmAlert.setHeaderText(null);
-					confirmAlert.setContentText("Вы уверены, что хотите удалить сотрудника " + selected.toString() + "?");
-					ButtonType yesButton = new ButtonType("Да");
-					ButtonType noButton = new ButtonType("Нет");
-					confirmAlert.getButtonTypes().setAll(yesButton, noButton);
-					confirmAlert.showAndWait().ifPresent(response -> {
-						if (response == ButtonType.YES) {
-							try {
-								controller.deleteEmployee(selected.getIdEmployee());
+				if (selected == null) {
+					showAlert("Ошибка", "Выберите сотрудника для удаления");
+					return;
+				}
+				Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
+				confirmAlert.setTitle("Подтверждение удаления");
+				confirmAlert.setHeaderText(null);
+				confirmAlert.setContentText("Вы уверены, что хотите удалить сотрудника " + selected.getFirstName() + " " + selected.getLastName() + "?");
+				ButtonType yesButton = new ButtonType("Да");
+				ButtonType noButton = new ButtonType("Нет");
+				confirmAlert.getButtonTypes().setAll(yesButton, noButton);
+				confirmAlert.showAndWait().ifPresent(response -> {
+					if (response == yesButton) {
+						try {
+							controller.deleteEmployee(selected.getIdEmployee());
+							Platform.runLater(() -> {
 								table.setItems(FXCollections.observableArrayList(controller.getAllEmployees()));
 								showAlert("Успех", "Сотрудник успешно удален");
-							} catch (Exception ex) {
-								showAlert("Ошибка", "Ошибка удаления: " + ex.getMessage());
-							}
+							});
+						} catch (Exception ex) {
+							Platform.runLater(() -> showAlert("Ошибка", "Ошибка удаления сотрудника: " + ex.getMessage()));
 						}
-					});
-				} else {
-					showAlert("Ошибка", "Выберите сотрудника для удаления");
-				}
+					}
+				});
 			});
 			
 			buttonBox.getChildren().addAll(addButton, editButton, deleteButton);

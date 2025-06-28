@@ -6,7 +6,6 @@ import model.Employee;
 import model.User;
 import view.EmployeeView;
 import javafx.stage.Stage;
-import java.util.ArrayList;
 import java.util.List;
 
 public class EmployeeController {
@@ -24,32 +23,11 @@ public class EmployeeController {
 		this.userDAO = UserDAO.getInstance();
 	}
 	
-	public User getCurrentUser() {
-		return currentUser;
-	}
-	
-	public void showProfileView() {
-		employeeView.showProfileView(primaryStage, getEmployeeById(currentUser.getIdEmployee()));
-	}
-	
-	public void showAllEmployeesView() {
-		employeeView.showAllEmployeesView(primaryStage);
-	}
-	
-	public Employee getEmployeeById(int id) {
-		return employeeDAO.getEmployeeById(id);
-	}
-	
-	public List<Employee> getAllEmployees() {
-		List<Employee> allEmployees = employeeDAO.getAllEmployees();
-		List<Employee> filteredEmployees = new ArrayList<>();
-		for (Employee employee : allEmployees) {
-			User user = userDAO.getUserByEmail(employee.getEmail());
-			if (user != null && !"Администратор".equalsIgnoreCase(user.getRole()))
-				filteredEmployees.add(employee);
-		}
-		return filteredEmployees;
-	}
+	public User getCurrentUser() {return currentUser;}
+	public void showProfileView() {employeeView.showProfileView(primaryStage, getEmployeeById(currentUser.getIdEmployee()));}
+	public void showAllEmployeesView() {employeeView.showAllEmployeesView(primaryStage);}
+	public Employee getEmployeeById(int id) {return employeeDAO.getEmployeeById(id);}
+	public List<Employee> getAllEmployees() {return employeeDAO.getAllEmployees();}
 	
 	public void updateEmployee(Employee employee, String password, String role) {
 		employeeDAO.updateEmployee(employee);
@@ -94,6 +72,12 @@ public class EmployeeController {
 	}
 	
 	public void deleteEmployee(int idEmployee) {
+		if (idEmployee <= 0) {
+			throw new IllegalArgumentException("Некорректный ID сотрудника");
+		}
+		if (idEmployee == currentUser.getIdEmployee()) {
+			throw new IllegalStateException("Нельзя удалить текущего администратора");
+		}
 		employeeDAO.deleteEmployee(idEmployee);
 	}
 	

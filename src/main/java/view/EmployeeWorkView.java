@@ -273,7 +273,6 @@ public class EmployeeWorkView {
 		grid.add(employeeCombo, 1, 1);
 		
 		ComboBox<Work> workCombo = new ComboBox<>();
-	
 		List<Work> availableWorks = controller.getAllWorks().stream()
 				                            .filter(work -> {
 					                            List<Employee> assignedEmployees = controller.getAssignedEmployees(work.getIdWork());
